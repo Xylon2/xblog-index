@@ -1,22 +1,31 @@
+# Purpose
+A simple way to make a blog. Generate the posts as HTML files using whattever
+method you want. Then just add them to an edn file and the front-end code will
+make a nice index.
+
 # Installation
 
-1. First you need to compile:
+1. Install dependencies on your workspace:
+- babashka
+- node
+
+2. First you need to compile:
 ```npx shadow-cljs compile app```
 
-2. Try the development server:
+3. Try the development server:
 ```npx shadow-cljs watch app```
 
-3. Copy these into your docroot:
+4. Copy these into your docroot:
 - resources/public/cljs/
 - add_post.clj
 - resources/public/index.html
 - resources/public/index.edn
 
-4. Make sure your webserver serves .edn with the right mime-type application/edn
+5. Make sure your webserver serves .edn with the right mime-type application/edn
 
-5. Customize index.html with your branding
+6. Customize index.html with your branding
 
-6. Empty the posts out of index.edn and use the add_post.clj script to add your new posts
+7. Empty the posts out of index.edn and use the add_post.clj script to add your new posts
 
 # Dev
 
