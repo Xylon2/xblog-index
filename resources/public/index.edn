@@ -1,0 +1,28 @@
+{
+  :posts [
+    {
+      :title "An Introduction to Quantum Computing"
+      :date 1640995200
+      :category "Technology"
+      :link "intro_to_quantum_computing.html"
+    }
+    {
+      :title "Mastering the Art of Baking Bread"
+      :date 1643760000
+      :category "Cooking"
+      :link "mastering_baking_bread.html"
+    }
+    {
+      :title "These are stored in index.edn"
+      :date 1709424000
+      :category "Intro"
+      :link "future_of_renewable_energy.html"
+    }
+    {
+      :title "These are example posts"
+      :date 1712185200
+      :category "Intro"
+      :link "exploring_wiltshire.html"
+    }
+]
+}

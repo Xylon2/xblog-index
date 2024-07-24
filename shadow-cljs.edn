@@ -1,0 +1,14 @@
+{:source-paths ["src/cljs"
+                "test/cljs"]
+ :dependencies [[cljs-http "0.1.48"]
+                [reagent "1.2.0"]
+                [com.andrewmcveigh/cljs-time "0.5.2"]]
+ :dev-http {3010 "resources/public/"}
+ :builds {:app {:output-dir "resources/public/cljs/"
+                :asset-path "cljs"
+                :target :browser
+                :modules {:main {:init-fn blog-index.index/main!}}}
+          :test {:target :node-test
+                 :output-to "target/test.js"
+                 :ns-regexp "-test$"
+                 :autorun   true}}}
