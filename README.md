@@ -21,7 +21,7 @@ make a nice index.
 - resources/public/index.html
 - resources/public/index.edn
 
-5. Make sure your webserver serves .edn with the right mime-type application/edn
+5. Make sure your webserver serves .edn with the right mime-type `application/edn`
 
 6. Customize index.html with your branding
 
