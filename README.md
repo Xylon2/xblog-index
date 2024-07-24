@@ -9,11 +9,11 @@ make a nice index.
 - babashka
 - node
 
-2. First you need to compile:
-```npx shadow-cljs compile app```
-
-3. Try the development server:
+2. Try the development server:
 ```npx shadow-cljs watch app```
+
+3. Compile your release build:
+```npx shadow-cljs release app```
 
 4. Copy these into your docroot:
 - resources/public/cljs/
