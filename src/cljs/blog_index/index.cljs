@@ -4,7 +4,8 @@
             [cljs.core.async :refer [<!]]
             [goog.dom :as gdom]
             [cljs-time.coerce :as coerce]
-            [cljs-time.core :as time]))
+            [cljs-time.core :as time]
+            [clojure.set :as set]))
 
 (def postdata (atom {}))  ; stores the edn when we download it
 (def sort-type (atom :category))  ; either :category or :date
@@ -73,15 +74,38 @@
     (.appendChild category-div ul)
     category-div))
 
+(defn order-categories
+  "essentially we have a map, and want to re-arrange what's inside it to a specific order"
+  [source-map order]
+  (reduce
+   ;; reducing fn
+   (fn [{:keys [ordered remainder] :as acc} x]
+     (assoc acc
+            :ordered
+            (into ordered [(vector x (get remainder x))])
+            :remainder
+            (dissoc remainder x)))
+
+   ;; initial accumulator
+          {:ordered []
+           :remainder source-map}
+
+          order))
+
 (defn write-posts-by-category!
   []
   (let [content-div (gdom/getElement "blog-posts-container")
         by-category (group-posts-by-category (:posts @postdata))
-        cat-by-date (category-by-date by-category)]
+        {:keys [category-order-top category-order-bottom]} @postdata
 
-    ;; cat-by-date is a map of categories. with the key being the category name
-    ;; and the value being a vector of maps which are the posts
-    (doseq [[category entries] cat-by-date]
+        ;; bit of juggling to apply any custom category ordering
+        valid-top-categories (set/intersection category-order-top (set (keys by-category)))
+        valid-bottom-categories (set/intersection category-order-bottom (set (keys by-category)))
+        {top :ordered remainder :remainder} (order-categories by-category valid-top-categories)
+        {bottom :ordered unsorted :remainder} (order-categories remainder valid-bottom-categories)
+        cats-explicit-order (concat top (category-by-date unsorted) bottom)]
+
+    (doseq [[category entries] cats-explicit-order]
       (.appendChild content-div (render-category category entries)))))
 
 (defn get-year-from-timestamp [timestamp]

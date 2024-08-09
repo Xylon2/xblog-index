@@ -24,5 +24,13 @@
       :category "Intro"
       :link "exploring_wiltshire.html"
     }
+    {
+     :title "Star Wars"
+     :date 35433
+     :category "Futurism"
+     :link "nhhfiwiguwe.html"
+     }
 ]
+ ;; :category-order-top ["Technology" "Cooking"]
+ ;; :category-order-bottom ["Intro"]
 }

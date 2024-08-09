@@ -3,7 +3,8 @@
             [blog-index.index :refer [group-posts-by-category
                                       group-posts-by-date
                                       category-by-date format-date
-                                      min-max-years]]
+                                      min-max-years
+                                      order-categories]]
             [goog.date.DateTime :as gdate]))
 
 (def example-edn
@@ -51,6 +52,13 @@
             :date 1672531200
             :category "Diet"
             :link "primal_food_pyramid_r2.html"}]})
+
+(def cat-grouped-more-items
+  {"Misc" [1 2 3],
+   "Diet" [5 6 7],
+   "Futurism" [8 9 10],
+   "Intro" [11 12 13],
+   "Cooking" [14 15 16],})
 
 (def date-grouped-edn
   '([2024 [{:title "Carnivore experiment - 10months in"
@@ -105,5 +113,13 @@
 
 (deftest test-min-max-years
   (is (= {:min 2017 :max 2024} (min-max-years example-edn))))
+
+(deftest test-order-categories
+  (is (= {:ordered [["Intro" [11 12 13]]
+                    ["Cooking" [14 15 16]]
+                    ["Futurism" [8 9 10]]],
+          :remainder {"Misc" [1 2 3],
+                      "Diet" [5 6 7]}}
+         (order-categories cat-grouped-more-items ["Intro" "Cooking" "Futurism"]))))
 
 (run-tests)
