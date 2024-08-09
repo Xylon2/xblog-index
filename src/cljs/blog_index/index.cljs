@@ -77,20 +77,9 @@
 (defn order-categories
   "essentially we have a map, and want to re-arrange what's inside it to a specific order"
   [source-map order]
-  (reduce
-   ;; reducing fn
-   (fn [{:keys [ordered remainder] :as acc} x]
-     (assoc acc
-            :ordered
-            (into ordered [(vector x (get remainder x))])
-            :remainder
-            (dissoc remainder x)))
-
-   ;; initial accumulator
-          {:ordered []
-           :remainder source-map}
-
-          order))
+  (let [ordered (map #(vector % (get source-map %)) order)
+        remainder (apply dissoc source-map order)]
+    {:ordered ordered :remainder remainder}))
 
 (defn write-posts-by-category!
   []
