@@ -70,6 +70,12 @@
         (.setAttribute a "href" (:link entry))
         (.appendChild a (.createTextNode js/document (:title entry)))
         (.appendChild li a)
+        (when (contains? (:meta entry) :ai-generated)
+          (.appendChild li (.createTextNode js/document " "))
+          (.appendChild li
+                        (doto (.createElement js/document "span")
+                          (.appendChild (.createTextNode js/document "written by AI"))
+                          (.setAttribute "class" "inverted-text"))))
         (.appendChild ul li)))
     (.appendChild category-div ul)
     category-div))
