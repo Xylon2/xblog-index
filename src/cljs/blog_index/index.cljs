@@ -57,27 +57,50 @@
 
     cats-sorted))
 
+(defn create-elem+
+  "create an element and add attributes"
+  [type & attrs]
+  (let [newelem (.createElement js/document type)]
+    (doseq [[a b] [attrs]]
+      (.setAttribute newelem a b))
+    newelem))
+
+(defn append-child+
+  "append multiple children"
+  [elem & children]
+  (doseq [c children]
+    (prn c)
+    (.appendChild elem c)))
+
+(comment
+  (let [elem (create-elem+ "span" "class" "boop")]
+   (append-child+ elem  (.createElement js/document "a")))
+  )
+
+(defn render-by-date [ul entry]
+  (let [li (.createElement js/document "li")
+        dspan (create-elem+ "span" "class" "date")
+        tspan (create-elem+ "span" "class" "title")
+        a (create-elem+ "a" "href" (:link entry))]
+    (append-child+ dspan (.createTextNode js/document (format-date (:date entry))))
+    (append-child+ a (.createTextNode js/document (:title entry)))
+    (append-child+ tspan a)
+    (when (contains? (:meta entry) :ai-generated)
+      (append-child+ tspan (.createTextNode js/document " ")
+                     (doto (.createElement js/document "span")
+                       (.appendChild (.createTextNode js/document "written by AI"))
+                       (.setAttribute "class" "inverted-text"))))
+    (append-child+ li dspan tspan)
+    (append-child+ ul li)))
+
 (defn render-category [category entries]
-  (let [category-div (.createElement js/document "div")
+  (let [category-div (create-elem+ "div" "class" "blog-category")
         h2 (.createElement js/document "h2")
-        ul (.createElement js/document "ul")]
-    (.setAttribute category-div "class" "blog-category")
+        ul (create-elem+ "ul" "class" "posts")]
     (.appendChild h2 (.createTextNode js/document category))
-    (.appendChild category-div h2)
     (doseq [entry entries]
-      (let [li (.createElement js/document "li")
-            a (.createElement js/document "a")]
-        (.setAttribute a "href" (:link entry))
-        (.appendChild a (.createTextNode js/document (:title entry)))
-        (.appendChild li a)
-        (when (contains? (:meta entry) :ai-generated)
-          (.appendChild li (.createTextNode js/document " "))
-          (.appendChild li
-                        (doto (.createElement js/document "span")
-                          (.appendChild (.createTextNode js/document "written by AI"))
-                          (.setAttribute "class" "inverted-text"))))
-        (.appendChild ul li)))
-    (.appendChild category-div ul)
+      (render-by-date ul entry))
+    (append-child+ category-div h2 ul)
     category-div))
 
 (defn order-categories
@@ -122,10 +145,6 @@
         grouped (group-by-year sorted-posts)]
     (sort-by key > grouped)))
 
-(defn add-date-to-title
-  [{:keys [title date] :as post}]
-  (assoc post :title (str title " - " (format-date date))))
-
 (defn write-posts-by-date!
   []
   (let [content-div (gdom/getElement "blog-posts-container")
@@ -134,7 +153,7 @@
     ;; by-date is a map of categories. with the key being the category name and
     ;; the value being a vector of maps which are the posts
     (doseq [[category entries] by-date]
-      (.appendChild content-div (render-category category (map add-date-to-title entries))))))
+      (.appendChild content-div (render-category category entries)))))
 
 (defn min-max-years [data]
   (let [years (map #(get-year-from-timestamp (:date %)) data)]

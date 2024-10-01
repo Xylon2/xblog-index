@@ -46,6 +46,28 @@
       td.org-left { text-align: left; }
       td.org-center { text-align: center; }
       textarea { overflow-x: auto; }
+
+      .posts {
+          list-style-type: none; /* Removes default list bullets */
+          margin: 0;
+          padding: 0;
+      }
+
+      .posts li {
+          display: flex;
+      }
+
+      .posts .date {
+          width: 20%;
+          text-align: right;
+          padding-right: 10px; /* Optional spacing */
+      }
+
+      .posts .title {
+          width: 80%;
+          text-align: left;
+          padding-left: 10px; /* Optional spacing */
+      }
     </style>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sakura.css/css/sakura.css" type="text/css">
   </head>
