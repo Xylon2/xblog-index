@@ -61,7 +61,7 @@
   "create an element and add attributes"
   [type & attrs]
   (let [newelem (.createElement js/document type)]
-    (doseq [[a b] [attrs]]
+    (doseq [[a b] (partition 2 attrs)]
       (.setAttribute newelem a b))
     newelem))
 
