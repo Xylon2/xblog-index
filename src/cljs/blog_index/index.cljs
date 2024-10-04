@@ -69,7 +69,6 @@
   "append multiple children"
   [elem & children]
   (doseq [c children]
-    (prn c)
     (.appendChild elem c)))
 
 (comment
