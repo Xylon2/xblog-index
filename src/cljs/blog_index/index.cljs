@@ -88,7 +88,12 @@
       (append-child+ tspan (.createTextNode js/document " ")
                      (doto (.createElement js/document "span")
                        (.appendChild (.createTextNode js/document "written by AI"))
-                       (.setAttribute "class" "inverted-text"))))
+                       (.setAttribute "class" "ai-generated"))))
+    (when (contains? (:meta entry) :no-ai)
+      (append-child+ tspan (.createTextNode js/document " ")
+                     (doto (.createElement js/document "span")
+                       (.appendChild (.createTextNode js/document "no AI"))
+                       (.setAttribute "class" "no-ai"))))
     (append-child+ li dspan tspan)
     (append-child+ ul li)))
 
