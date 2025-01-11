@@ -22,7 +22,16 @@
       (= mod10 3) (if (= mod100 13) "th" "rd")
       :else "th")))
 
-(defn format-date [timestamp-str]
+(defn format-date-w-year [timestamp-str]
+  (let [timestamp (js/parseInt timestamp-str)
+        date (js/Date. (* timestamp 1000))
+        day (.getDate date)
+        month (.toLocaleDateString date "en-GB" #js {:month "short"})
+        two-digit-year (.slice (str (.getFullYear date)) -2)
+        ordinal-suffix (get-ordinal-suffix day)]
+    (str day ordinal-suffix " " month " " two-digit-year)))
+
+(defn format-date-wo-year [timestamp-str]
   (let [timestamp (js/parseInt timestamp-str)
         date (js/Date. (* timestamp 1000))
         day (.getDate date)
@@ -76,12 +85,12 @@
    (append-child+ elem  (.createElement js/document "a")))
   )
 
-(defn render-by-date [ul entry]
+(defn render-by-date [datefmt-fn ul entry]
   (let [li (.createElement js/document "li")
         dspan (create-elem+ "span" "class" "date")
         tspan (create-elem+ "span" "class" "title")
         a (create-elem+ "a" "href" (:link entry))]
-    (append-child+ dspan (.createTextNode js/document (format-date (:date entry))))
+    (append-child+ dspan (.createTextNode js/document (datefmt-fn (:date entry))))
     (append-child+ a (.createTextNode js/document (:title entry)))
     (append-child+ tspan a)
     (when (contains? (:meta entry) :ai-generated)
@@ -107,13 +116,13 @@
     (append-child+ li dspan tspan)
     (append-child+ ul li)))
 
-(defn render-category [category entries]
+(defn render-category [category entries datefmt-fn]
   (let [category-div (create-elem+ "div" "class" "blog-category")
         h2 (.createElement js/document "h2")
         ul (create-elem+ "ul" "class" "posts")]
     (.appendChild h2 (.createTextNode js/document category))
     (doseq [entry entries]
-      (render-by-date ul entry))
+      (render-by-date datefmt-fn ul entry))
     (append-child+ category-div h2 ul)
     category-div))
 
@@ -138,7 +147,7 @@
         cats-explicit-order (concat top (category-by-date unsorted) bottom)]
 
     (doseq [[category entries] cats-explicit-order]
-      (.appendChild content-div (render-category category entries)))))
+      (.appendChild content-div (render-category category entries format-date-w-year)))))
 
 (defn get-year-from-timestamp [timestamp]
   (-> (coerce/from-long (* 1000 timestamp))
@@ -167,7 +176,7 @@
     ;; by-date is a map of categories. with the key being the category name and
     ;; the value being a vector of maps which are the posts
     (doseq [[category entries] by-date]
-      (.appendChild content-div (render-category category entries)))))
+      (.appendChild content-div (render-category category entries format-date-wo-year)))))
 
 (defn min-max-years [data]
   (let [years (map #(get-year-from-timestamp (:date %)) data)]
