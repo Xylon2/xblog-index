@@ -43,7 +43,6 @@
     (if data
       (let [posts (:posts data)
             unique-categories (get-unique-categories posts)]
-        (println "Existing categories:" unique-categories)
         (println "Please enter the new post details:")
         (let [title (prompt "Enter the title of the post: ")
               category (prompt (str "Enter the category of the post (existing - " unique-categories "): "))
