@@ -16,7 +16,7 @@ make a nice index.
 ```npx shadow-cljs release app```
 
 4. Copy these into your docroot:
-- resources/public/cljs/
+- resources/public/cljs/{main.js,manifest.edn}
 - add_post.clj
 - resources/public/index.html
 - resources/public/index.edn
