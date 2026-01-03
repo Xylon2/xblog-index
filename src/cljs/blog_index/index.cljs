@@ -9,9 +9,17 @@
 
 (def postdata (atom {}))  ; stores the edn when we download it
 (def sort-type (atom :category))  ; either :category or :date
+(def show-depreciated (atom false))  ; whether to show depreciated posts
 
 (defn sort-posts-by-date [posts]
   (sort-by :date > posts))
+
+(defn filter-depreciated
+  "Filter out depreciated posts if show-depreciated is false"
+  [posts]
+  (if @show-depreciated
+    posts
+    (filter #(not (contains? (:meta %) :depreciated)) posts)))
 
 (defn get-ordinal-suffix [day]
   (let [mod10 (mod day 10)
@@ -85,34 +93,42 @@
    (append-child+ elem  (.createElement js/document "a")))
   )
 
+(defn create-tooltip
+  "creates a tooltip div with label and tooltiptext span"
+  [label-text css-class tooltip-text]
+  (doto (.createElement js/document "div")
+    (.appendChild (.createTextNode js/document label-text))
+    (.setAttribute "class" (str "tooltip " css-class))
+    (.appendChild
+     (doto (.createElement js/document "span")
+       (.setAttribute "class" "tooltiptext")
+       (.appendChild (.createTextNode js/document tooltip-text))))))
+
 (defn render-by-date [datefmt-fn ul entry]
   (let [li (.createElement js/document "li")
         dspan (create-elem+ "span" "class" "date")
         tspan (create-elem+ "span" "class" "title")
-        a (create-elem+ "a" "href" (:link entry))]
+        a (create-elem+ "a" "href" (:link entry))
+        tooltip-configs [{:meta-key :ai-generated
+                          :label "written by AI"
+                          :css-class "ai-generated"
+                          :tooltip "written by AI with human guidance"}
+                         {:meta-key :no-ai
+                          :label "no AI"
+                          :css-class "no-ai"
+                          :tooltip "written 100% by human"}
+                         {:meta-key :depreciated
+                          :label "depreciated"
+                          :css-class "depreciated"
+                          :tooltip "I no-longer agree with what I wrote"}]]
     (append-child+ dspan (.createTextNode js/document (datefmt-fn (:date entry))))
     (append-child+ a (.createTextNode js/document (:title entry)))
     (append-child+ tspan a)
-    (when (contains? (:meta entry) :ai-generated)
-      (append-child+ tspan (.createTextNode js/document " ")
-                     (doto (.createElement js/document "div")
-                       (.appendChild (.createTextNode js/document "written by AI"))
-                       (.setAttribute "class" "tooltip ai-generated")
-                       (.appendChild
-                        (doto (.createElement js/document "span")
-                          (.setAttribute "class" "tooltiptext")
-                          (.appendChild (.createTextNode js/document "written by AI with human guidance"))
-                          )))))
-    (when (contains? (:meta entry) :no-ai)
-      (append-child+ tspan (.createTextNode js/document " ")
-                     (doto (.createElement js/document "div")
-                       (.appendChild (.createTextNode js/document "no AI"))
-                       (.setAttribute "class" "tooltip no-ai")
-                       (.appendChild
-                        (doto (.createElement js/document "span")
-                          (.setAttribute "class" "tooltiptext")
-                          (.appendChild (.createTextNode js/document "written 100% by human"))
-                          )))))
+    (doseq [{:keys [meta-key label css-class tooltip]} tooltip-configs]
+      (when (contains? (:meta entry) meta-key)
+        (append-child+ tspan
+                       (.createTextNode js/document " ")
+                       (create-tooltip label css-class tooltip))))
     (append-child+ li dspan tspan)
     (append-child+ ul li)))
 
@@ -136,7 +152,8 @@
 (defn write-posts-by-category!
   []
   (let [content-div (gdom/getElement "blog-posts-container")
-        by-category (group-posts-by-category (:posts @postdata))
+        filtered-posts (filter-depreciated (:posts @postdata))
+        by-category (group-posts-by-category filtered-posts)
         {:keys [category-order-top category-order-bottom]} @postdata
 
         ;; bit of juggling to apply any custom category ordering
@@ -171,7 +188,8 @@
 (defn write-posts-by-date!
   []
   (let [content-div (gdom/getElement "blog-posts-container")
-        by-date (group-posts-by-date (:posts @postdata))]
+        filtered-posts (filter-depreciated (:posts @postdata))
+        by-date (group-posts-by-date filtered-posts)]
 
     ;; by-date is a map of categories. with the key being the category name and
     ;; the value being a vector of maps which are the posts
@@ -220,6 +238,17 @@
     (reset-contents)
     (renderfn)))
 
+(defn toggle-depreciated
+  "toggle whether to show depreciated posts"
+  []
+  (swap! show-depreciated not)
+  (let [button (gdom/getElement "toggle-depreciated")
+        btntext (if @show-depreciated "Hide Depreciated" "Show Depreciated")
+        {{:keys [renderfn]} @sort-type} button-states]
+    (set! (.-textContent button) btntext)
+    (reset-contents)
+    (renderfn)))
+
 (defn load-posts []
   (go
     (let [response (<! (http/get "/index.edn"))]
@@ -231,8 +260,11 @@
         (js/console.error "Failed to fetch index.edn:" (:error-text response))))))
 
 (defn main! []
-  (let [button (.getElementById js/document "toggle-sort")]
-    (.addEventListener button "click" toggle-sort))
+  (let [sort-button (.getElementById js/document "toggle-sort")
+        depreciated-button (.getElementById js/document "toggle-depreciated")]
+    (.addEventListener sort-button "click" toggle-sort)
+    (when depreciated-button
+      (.addEventListener depreciated-button "click" toggle-depreciated)))
 
   (load-posts)
   )  
