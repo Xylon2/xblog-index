@@ -85,34 +85,42 @@
    (append-child+ elem  (.createElement js/document "a")))
   )
 
+(defn create-tooltip
+  "creates a tooltip div with label and tooltiptext span"
+  [label-text css-class tooltip-text]
+  (doto (.createElement js/document "div")
+    (.appendChild (.createTextNode js/document label-text))
+    (.setAttribute "class" (str "tooltip " css-class))
+    (.appendChild
+     (doto (.createElement js/document "span")
+       (.setAttribute "class" "tooltiptext")
+       (.appendChild (.createTextNode js/document tooltip-text))))))
+
 (defn render-by-date [datefmt-fn ul entry]
   (let [li (.createElement js/document "li")
         dspan (create-elem+ "span" "class" "date")
         tspan (create-elem+ "span" "class" "title")
-        a (create-elem+ "a" "href" (:link entry))]
+        a (create-elem+ "a" "href" (:link entry))
+        tooltip-configs [{:meta-key :ai-generated
+                          :label "written by AI"
+                          :css-class "ai-generated"
+                          :tooltip "written by AI with human guidance"}
+                         {:meta-key :no-ai
+                          :label "no AI"
+                          :css-class "no-ai"
+                          :tooltip "written 100% by human"}
+                         {:meta-key :depreciated
+                          :label "depreciated"
+                          :css-class "depreciated"
+                          :tooltip "I no-longer agree with what I wrote"}]]
     (append-child+ dspan (.createTextNode js/document (datefmt-fn (:date entry))))
     (append-child+ a (.createTextNode js/document (:title entry)))
     (append-child+ tspan a)
-    (when (contains? (:meta entry) :ai-generated)
-      (append-child+ tspan (.createTextNode js/document " ")
-                     (doto (.createElement js/document "div")
-                       (.appendChild (.createTextNode js/document "written by AI"))
-                       (.setAttribute "class" "tooltip ai-generated")
-                       (.appendChild
-                        (doto (.createElement js/document "span")
-                          (.setAttribute "class" "tooltiptext")
-                          (.appendChild (.createTextNode js/document "written by AI with human guidance"))
-                          )))))
-    (when (contains? (:meta entry) :no-ai)
-      (append-child+ tspan (.createTextNode js/document " ")
-                     (doto (.createElement js/document "div")
-                       (.appendChild (.createTextNode js/document "no AI"))
-                       (.setAttribute "class" "tooltip no-ai")
-                       (.appendChild
-                        (doto (.createElement js/document "span")
-                          (.setAttribute "class" "tooltiptext")
-                          (.appendChild (.createTextNode js/document "written 100% by human"))
-                          )))))
+    (doseq [{:keys [meta-key label css-class tooltip]} tooltip-configs]
+      (when (contains? (:meta entry) meta-key)
+        (append-child+ tspan
+                       (.createTextNode js/document " ")
+                       (create-tooltip label css-class tooltip))))
     (append-child+ li dspan tspan)
     (append-child+ ul li)))
 
